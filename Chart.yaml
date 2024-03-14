@@ -1,0 +1,9 @@
+apiVersion: v2
+name: raas
+description: Response as a service (RAAS) is a simple HTTP echo server that returns the request it receives in the response body utilizing the hashicorp/http-echo image.
+
+type: application
+
+version: 0.1.0
+
+appVersion: "1.0.0

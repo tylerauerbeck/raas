@@ -1,0 +1,51 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "raas.fullname" . }}
+  labels:
+    {{- include "raas.labels" . | nindent 4 }}
+spec:
+  selector:
+    matchLabels:
+      app: raas-echo
+  revisionHistoryLimit: 3
+  replicas: {{ .Values.raas.replicas }}
+{{- if gt (.Values.raas.replicas | int) 1}}
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxUnavailable: 1
+{{- end }}
+  template:
+    metadata:
+      labels:
+        app: raas-echo
+    spec:
+      containers:
+        - name: raas-echo
+          image: hashicorp/http-echo
+          imagePullPolicy: Always
+          args:
+            - -text='{{ .Values.raas.text }}'
+            - -status-code={{ .Values.raas.statusCode | int }}
+          ports:
+            - containerPort: 5678
+          resources:
+            requests:
+              memory: 512Mi
+              cpu: 500m
+            limits:
+              memory: 1Gi
+              cpu: 500m
+      affinity:
+        podAntiAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+            - weight: 100
+              podAffinityTerm:
+                labelSelector:
+                  matchExpressions:
+                    - key: app
+                      operator: In
+                      values:
+                        - raas-echo
+                topologyKey: kubernetes.io/hostname
